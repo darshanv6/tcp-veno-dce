@@ -1,16 +1,8 @@
-<b>Computer Networks Project 2017-18</b>
-Sem-5
-<br>
-<b>Teammates : <br></b>
-Darshan V            darshan.blh@gmail.com      16CO109<br>
-Gsriramsharath       gsriramsharath@gmail.com   16CO113<br>
-Amal Byju            amalbyju98@gmail.com       16CO205 <br>
-<br>
+<b>Computer Networks Project 2017-18<br>
 <br>
 <b>About DCE</b> 
 <br>
 Direct Code Execution (DCE) is a framework over ns-3 that provides a feature to run simulations using real Linux network stack. Besides, it provides a feature to use real network applications (such as iperf) inside ns-3 environment without changing their code. This feature helps to leverage the functionalities of existing network tools available for Linux inside the ns-3 environment. <br>
-#DCE-10<br>
 <b>​Validate the ns-3 implementation of TCP Veno </b><br>
 <br>
 Brief: TCP Veno is also targeted to improve the performance of TCP in wireless environments. It is a combination Vegas and Reno, and hence, named as Veno. <br>
