@@ -1,0 +1,11 @@
+set xrange [12:30]
+#set yrange [0:120]
+set terminal pngcairo enhanced color lw 2 size 800,600 font 'Arial-Bold'
+set output "Queue comparison.png"
+set xlabel "Time (sec)" font "Verdana"
+set ylabel "Cwnd (Packets)" font "Verdana"
+set key outside;
+set key right top;
+plot "linux-queue-size.plotme" title "linux" with lines lw 1.5,"ns3-queue-size.plotme" title "ns3" with lines lw 1.5
+
+

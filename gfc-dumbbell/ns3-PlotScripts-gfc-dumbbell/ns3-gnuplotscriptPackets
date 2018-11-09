@@ -1,0 +1,8 @@
+set xrange [10:20]
+set terminal pngcairo enhanced color lw 2 size 800,600 font 'Arial-Bold'
+set output "TP-Flow-Packets.png"
+set xlabel "Time (sec)"
+set ylabel "Throughput (Packets/sec)"
+set key outside;
+set key right top;
+plot "TP-A-ns3.plotme" title "A" with lines lw 1.5,"TP-B-ns3.plotme" title "B" with lines lw 1.5,"TP-C-ns3.plotme" title "C" with lines lw 1.5,"TP-D-ns3.plotme" title "D" with lines lw 1.5,"TP-E-ns3.plotme" title "E" with lines lw 1.5

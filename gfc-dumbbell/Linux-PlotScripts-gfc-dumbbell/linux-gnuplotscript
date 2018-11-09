@@ -1,0 +1,16 @@
+set terminal pngcairo enhanced color lw 2 size 800,600 font 'Arial-Bold'
+set output "TP-Flow.png"
+set xlabel "Time (sec)"
+set ylabel "Throughput (Mbps)"
+set xrange [10:20]
+set key outside;
+set key right top;
+plot "TP-A-linux.plotme" title "A" with lines lw 1.5,"TP-B-linux.plotme" title "B" with lines lw 1.5,"TP-C-linux.plotme" title "C" with lines lw 1.5,"TP-D-linux.plotme" title "D" with lines lw 1.5,"TP-E-linux.plotme" title "E" with lines lw 1.5
+
+set terminal pngcairo enhanced color lw 2 size 800,600 font 'Arial-Bold'
+set output "TP-Flow-Percent.png"
+set xlabel "Time (sec)"
+set ylabel "Throughput (%)"
+set key outside;
+set key right top;
+plot "TP-A-linux.plotme" using ($1):($2/1.5) title "A" with lines lw 1.5,"TP-B-linux.plotme" using ($1):($2/1.5) title "B" with lines lw 1.5,"TP-C-linux.plotme" using ($1):($2/1.50) title "C" with lines lw 1.5,"TP-D-linux.plotme" using ($1):($2/1.50) title "D" with lines lw 1.5,"TP-E-linux.plotme" using ($1):($2/1.5) title "E" with lines lw 1.5

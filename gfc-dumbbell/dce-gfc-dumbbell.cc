@@ -40,9 +40,10 @@
 using namespace ns3;
 Ptr<UniformRandomVariable> uv = CreateObject<UniformRandomVariable> ();
 std::string dir = "results/gfc-dumbbell/";
-double stopTime = 40;
+double stopTime = 20;
 
-void LinuxCheckQueueSize (Ptr<QueueDisc> queue)
+void
+LinuxCheckQueueSize (Ptr<QueueDisc> queue)
 {
   uint32_t qSize = queue->GetCurrentSize ().GetValue ();
 
@@ -53,7 +54,8 @@ void LinuxCheckQueueSize (Ptr<QueueDisc> queue)
   fPlotQueue.close ();
 }
 
-void ns3CheckQueueSize (Ptr<QueueDisc> queue)
+void
+ns3CheckQueueSize (Ptr<QueueDisc> queue)
 {
   uint32_t qSize = queue->GetCurrentSize ().GetValue ();
 
@@ -64,7 +66,8 @@ void ns3CheckQueueSize (Ptr<QueueDisc> queue)
   fPlotQueue.close ();
 }
 
-static void CwndChangeA (uint32_t oldCwnd, uint32_t newCwnd)
+static void
+CwndChangeA (uint32_t oldCwnd, uint32_t newCwnd)
 {
   std::ofstream fPlotQueue (dir + "cwndTraces/A-ns3.plotme", std::ios::out | std::ios::app);
   fPlotQueue << Simulator::Now ().GetSeconds () << " " << newCwnd/1446.0 << std::endl;
@@ -123,11 +126,11 @@ TraceCwnd (uint32_t node, uint32_t cwndWindow,
   Config::ConnectWithoutContext ("/NodeList/" + std::to_string (node) + "/$ns3::TcpL4Protocol/SocketList/" + std::to_string (cwndWindow) + "/CongestionWindow", CwndTrace);
 }
 
-void ns3InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port,
+void ns3InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, 
                       uint32_t nodeId, uint32_t cwndWindow,
                       Callback <void, uint32_t, uint32_t> CwndTrace)
 {
-  BulkSendHelper source ("ns3::TcpSocketFactory",
+  BulkSendHelper source ("ns3::TcpSocketFactory", 
                          InetSocketAddress (address, port));
 
   source.SetAttribute ("MaxBytes", UintegerValue (0));
@@ -180,11 +183,11 @@ int main (int argc, char *argv[])
   std::string transport_prot = "TcpVeno";
   std::string linux_prot = "veno";
   std::string queue_disc_type = "FifoQueueDisc";
-  bool useEcn = false;
+  bool useEcn = true;
   uint32_t dataSize = 1446;
   uint32_t delAckCount = 2;
 
-  //Enable checksum if linux and ns3 node communicate
+  //Enable checksum if linux and ns3 node communicate 
   GlobalValue::Bind ("ChecksumEnabled", BooleanValue (true));
 
   time_t rawtime;
@@ -251,44 +254,37 @@ int main (int argc, char *argv[])
 
   // Create the point-to-point link helpers
   PointToPointHelper pointToPointRouter;
-  pointToPointRouter.SetDeviceAttribute  ("DataRate", StringValue ("1Mbps"));
+  pointToPointRouter.SetDeviceAttribute  ("DataRate", StringValue ("150Mbps"));
   pointToPointRouter.SetChannelAttribute ("Delay", StringValue ("0.00075ms"));
-//  pointToPointRouter.SetChannelAttribute ("Delay", StringValue ("1.00ms"));
-
   NetDeviceContainer r1r2ND = pointToPointRouter.Install (routers.Get (0), routers.Get (1));
 
   std::vector <NetDeviceContainer> leftToRouter;
   std::vector <NetDeviceContainer> routerToRight;
   PointToPointHelper pointToPointLeaf;
-  pointToPointLeaf.SetDeviceAttribute    ("DataRate", StringValue ("10Mbps"));
+  pointToPointLeaf.SetDeviceAttribute    ("DataRate", StringValue ("150Mbps"));
 
   // Node 1
   pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.00025ms"));
-//  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("1.00ms"));
   leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (0), routers.Get (0)));
   routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (0)));
 
   // Node 2
   pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.0001ms"));
-//  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("1.000ms"));
   leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (1), routers.Get (0)));
   routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (1)));
 
   // Node 3
   pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.00005ms"));
-//  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("1.0000ms"));
   leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (2), routers.Get (0)));
   routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (2)));
 
   // Node 4
   pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.000025ms"));
-//  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("1.00000ms"));
   leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (3), routers.Get (0)));
   routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (3)));
 
   // Node 5
   pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.000005ms"));
-//  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("01.00000ms"));
   leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (4), routers.Get (0)));
   routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (4)));
 
@@ -307,7 +303,7 @@ int main (int argc, char *argv[])
     }
   else if (stack=="ns3")
     {
-      internetStack.InstallAll ();
+      internetStack.InstallAll (); 
     }
 
   // Assign ip addresses to all the net devices
@@ -332,7 +328,7 @@ int main (int argc, char *argv[])
   dceManager.Install (leftNodes);
   dceManager.Install (rightNodes);
   dceManager.Install (routers);
-
+  
   // Set configuration for inux stack
   if (stack=="linux")
     {
@@ -390,7 +386,7 @@ int main (int argc, char *argv[])
         }
     }
   else if (stack=="ns3")
-      {
+      { 
         Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
       }
 
@@ -410,7 +406,7 @@ int main (int argc, char *argv[])
       system ((dirToSave + "/cwndTraces/").c_str ());
       system (("cp -R ns3-PlotScripts-gfc-dumbbell/* " + dir + "/pcap/").c_str ());
     }
-
+  
   //Set default parameters for TCP in ns-3
   if (stack=="ns3")
     {
@@ -419,7 +415,7 @@ int main (int argc, char *argv[])
       Config::SetDefault ("ns3::TcpSocket::InitialCwnd", UintegerValue (10));
       Config::SetDefault ("ns3::TcpSocket::DelAckCount", UintegerValue (delAckCount));
       Config::SetDefault ("ns3::TcpSocket::SegmentSize", UintegerValue (dataSize));
-      Config::SetDefault ("ns3::TcpSocketBase::EcnMode", StringValue ("ClassicEcn"));
+      Config::SetDefault ("ns3::TcpSocketBase::EcnMode", StringValue ("ClassicEcn"));    
     }
 
   // Set default parameters for queue disc
@@ -434,8 +430,8 @@ int main (int argc, char *argv[])
   QueueDiscContainer qd;
   tch.Uninstall (routers.Get (0)->GetDevice (0));
   qd.Add (tch.Install (routers.Get (0)->GetDevice (0)).Get (0));
-
- // Calls function to check queue size
+  
+ // Calls function to check queue size 
  if (stack == "linux")
     {
       Simulator::ScheduleNow (&LinuxCheckQueueSize, qd.Get (0));
@@ -444,7 +440,7 @@ int main (int argc, char *argv[])
     {
       Simulator::ScheduleNow (&ns3CheckQueueSize, qd.Get (0));
     }
-
+  
   // Create plotme to store packets dropped and marked at the router
   streamWrapper = asciiTraceHelper.CreateFileStream (dir + "/queueTraces/drop-0.plotme");
   qd.Get (0)->TraceConnectWithoutContext ("Drop", MakeBoundCallback (&DropAtQueue, streamWrapper));
