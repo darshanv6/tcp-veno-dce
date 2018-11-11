@@ -1,24 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/*
- * Copyright (c) 2018 NITK Surathkal
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation;
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * Authors: Apoorva Bhargava <apoorvabhargava13@gmail.com>
- *          Mohit P. Tahiliani <tahiliani@nitk.edu.in>
- */
-
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -32,7 +11,7 @@
 #include "ns3/traffic-control-module.h"
 #include "ns3/log.h"
 #include "ns3/random-variable-stream.h"
-#include "ns3/gtk-config-store.h"
+#include "gtk-config-store.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/callback.h"
 #include "ns3/dce-module.h"
@@ -40,7 +19,7 @@
 using namespace ns3;
 Ptr<UniformRandomVariable> uv = CreateObject<UniformRandomVariable> ();
 std::string dir = "results/gfc-dumbbell/";
-double stopTime = 20;
+double stopTime = 30;
 
 void
 LinuxCheckQueueSize (Ptr<QueueDisc> queue)
@@ -126,12 +105,9 @@ TraceCwnd (uint32_t node, uint32_t cwndWindow,
   Config::ConnectWithoutContext ("/NodeList/" + std::to_string (node) + "/$ns3::TcpL4Protocol/SocketList/" + std::to_string (cwndWindow) + "/CongestionWindow", CwndTrace);
 }
 
-void ns3InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port, 
-                      uint32_t nodeId, uint32_t cwndWindow,
-                      Callback <void, uint32_t, uint32_t> CwndTrace)
+void ns3InstallBulkSend (Ptr<Node> node, Ipv4Address address, uint16_t port,uint32_t nodeId, uint32_t cwndWindow,Callback <void, uint32_t, uint32_t> CwndTrace)
 {
-  BulkSendHelper source ("ns3::TcpSocketFactory", 
-                         InetSocketAddress (address, port));
+  BulkSendHelper source ("ns3::TcpSocketFactory",InetSocketAddress (address, port));
 
   source.SetAttribute ("MaxBytes", UintegerValue (0));
   ApplicationContainer sourceApps = source.Install (node);
@@ -157,6 +133,7 @@ void InstallPacketSink (Ptr<Node> node, uint16_t port, std::string sock_factory)
   ApplicationContainer sinkApps = sink.Install (node);
   sinkApps.Start (Seconds (10.0));
   sinkApps.Stop (Seconds (stopTime));
+     
 }
 
 static void GetSSStats (Ptr<Node> node, Time at, std::string stack)
@@ -182,9 +159,11 @@ int main (int argc, char *argv[])
   std::string sock_factory = "ns3::TcpSocketFactory";
   std::string transport_prot = "TcpVeno";
   std::string linux_prot = "veno";
+  //bool m_sackEnabled= true;
+  std::string recovery = "ns3::TcpClassicRecovery";
   std::string queue_disc_type = "FifoQueueDisc";
   bool useEcn = true;
-  uint32_t dataSize = 1446;
+  uint32_t dataSize = 1460;
   uint32_t delAckCount = 2;
 
   //Enable checksum if linux and ns3 node communicate 
@@ -211,9 +190,11 @@ int main (int argc, char *argv[])
                 "hybla, highspeed, htcp, vegas, scalable, veno, "
                 "bic, yeah, illinois, westwood, lp", linux_prot);
   cmd.AddValue ("queue_disc_type", "Queue disc type for gateway (e.g. ns3::CoDelQueueDisc)", queue_disc_type);
+  cmd.AddValue ("recovery", "Recovery algorithm type to use (e.g., ns3::TcpPrrRecovery", recovery);
   cmd.AddValue ("useEcn", "Use ECN", useEcn);
   cmd.AddValue ("dataSize", "Data packet size", dataSize);
   cmd.AddValue ("delAckCount", "Delayed ack count", delAckCount);
+ // cmd.AddValue ("m_sackEnabled", "Enable or disable Sack option",m_sackEnabled);
   cmd.AddValue ("stopTime", "Stop time for applications / simulation time will be stopTime", stopTime);
   cmd.Parse (argc,argv);
 
@@ -229,8 +210,9 @@ int main (int argc, char *argv[])
 
   // Enables PRR in ns-3 and sets the TCP in ns-3
   if (stack == "ns3")
-    {
+    {        
       Config::SetDefault ("ns3::TcpL4Protocol::RecoveryType", TypeIdValue (TypeId::LookupByName ("ns3::TcpPrrRecovery")));
+
       if (transport_prot.compare ("ns3::TcpWestwoodPlus") == 0)
         {
           // TcpWestwoodPlus is not an actual TypeId name; we need TcpWestwood here
@@ -254,37 +236,46 @@ int main (int argc, char *argv[])
 
   // Create the point-to-point link helpers
   PointToPointHelper pointToPointRouter;
-  pointToPointRouter.SetDeviceAttribute  ("DataRate", StringValue ("150Mbps"));
-  pointToPointRouter.SetChannelAttribute ("Delay", StringValue ("0.00075ms"));
+  //pointToPointRouter.SetDeviceAttribute  ("DataRate", StringValue ("100Mbps"));
+  //pointToPointRouter.SetChannelAttribute ("Delay", StringValue ("0.00075ms"));
+
+  pointToPointRouter.SetDeviceAttribute  ("DataRate", StringValue ("10Mbps"));
+  pointToPointRouter.SetChannelAttribute ("Delay", StringValue ("60ms"));
   NetDeviceContainer r1r2ND = pointToPointRouter.Install (routers.Get (0), routers.Get (1));
 
   std::vector <NetDeviceContainer> leftToRouter;
   std::vector <NetDeviceContainer> routerToRight;
   PointToPointHelper pointToPointLeaf;
-  pointToPointLeaf.SetDeviceAttribute    ("DataRate", StringValue ("150Mbps"));
-
-  // Node 1
-  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.00025ms"));
+  pointToPointLeaf.SetDeviceAttribute    ("DataRate", StringValue ("4Mbps"));
+  //pointToPointLeaf.SetDeviceAttribute    ("DataRate", StringValue ("100Mbps"));
+  
+ // Node 1
+  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("120ms"));
+ // pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.00025ms"));
   leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (0), routers.Get (0)));
   routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (0)));
 
   // Node 2
-  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.0001ms"));
+  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("120ms"));
+ //pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.0001ms"));
   leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (1), routers.Get (0)));
   routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (1)));
 
   // Node 3
-  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.00005ms"));
+  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("120ms"));
+  //pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.00005ms"));
   leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (2), routers.Get (0)));
   routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (2)));
 
   // Node 4
-  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.000025ms"));
+  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("120ms"));
+  //pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.000025ms"));
   leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (3), routers.Get (0)));
   routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (3)));
 
   // Node 5
-  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.000005ms"));
+  pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("120ms"));
+  //pointToPointLeaf.SetChannelAttribute   ("Delay", StringValue ("0.000005ms"));
   leftToRouter.push_back (pointToPointLeaf.Install (leftNodes.Get (4), routers.Get (0)));
   routerToRight.push_back (pointToPointLeaf.Install (routers.Get (1), rightNodes.Get (4)));
 
@@ -338,6 +329,14 @@ int main (int argc, char *argv[])
       linuxStack.SysctlSet (rightNodes, ".net.ipv4.tcp_congestion_control", linux_prot);
       //linuxStack.SysctlSet (leftNodes, ".net.ipv4.tcp_ecn", "1");
       //linuxStack.SysctlSet (rightNodes, ".net.ipv4.tcp_ecn", "1");
+      linuxStack.SysctlSet (leftNodes, ".net.ipv4.tcp_fack", "0");
+      linuxStack.SysctlSet (rightNodes, ".net.ipv4.tcp_sack", "1");
+     
+      linuxStack.SysctlSet (leftNodes, ".net.ipv4.tcp_sack", "1");
+      linuxStack.SysctlSet (rightNodes, ".net.ipv4.tcp_fack", "0");
+    
+      linuxStack.SysctlSet (leftNodes, ".net.ipv4.tcp_dsack", "0");
+      linuxStack.SysctlSet (rightNodes, ".net.ipv4.tcp_dsack", "0");
     }
 
   if (stack=="linux")
@@ -415,7 +414,8 @@ int main (int argc, char *argv[])
       Config::SetDefault ("ns3::TcpSocket::InitialCwnd", UintegerValue (10));
       Config::SetDefault ("ns3::TcpSocket::DelAckCount", UintegerValue (delAckCount));
       Config::SetDefault ("ns3::TcpSocket::SegmentSize", UintegerValue (dataSize));
-      Config::SetDefault ("ns3::TcpSocketBase::EcnMode", StringValue ("ClassicEcn"));    
+      Config::SetDefault ("ns3::TcpSocketBase::EcnMode", StringValue ("ClassicEcn"));
+      Config::SetDefault ("ns3::TcpSocketBase::Sack",BooleanValue (true));      
     }
 
   // Set default parameters for queue disc
@@ -505,6 +505,7 @@ int main (int argc, char *argv[])
   // Stores configuration of the simulation in a file
   myfile.open (dir + "config.txt", std::fstream::in | std::fstream::out | std::fstream::app);
   myfile << "useEcn " << useEcn << "\n";
+  myfile << "recovery" << recovery << "\n";
   myfile << "queue_disc_type " << queue_disc_type << "\n";
   myfile << "stream  " << stream << "\n";
   myfile << "stack  " << stack << "\n";
