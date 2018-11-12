@@ -1,0 +1,8 @@
+useEcn 0
+queue_disc_type ns3::FifoQueueDisc
+stream  1
+stack  linux
+linux_prot veno
+dataSize 1446
+delAckCount 2
+stopTime 30
