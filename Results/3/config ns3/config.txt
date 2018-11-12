@@ -1,0 +1,9 @@
+useEcn 1
+recoveryns3::TcpPrrRecovery
+queue_disc_type ns3::FifoQueueDisc
+stream  1
+stack  ns3
+transport_prot ns3::TcpVeno
+dataSize 1460
+delAckCount 2
+stopTime 30
