@@ -1,18 +1,20 @@
-# tcp-veno-dce
+# Compare TCP Veno's performance on linux and ns3 stack
 
-step-1 :: Unzip the gfc-dumbbell file<br>
-step-2 :: copy the files in the respective directory <br>
-          A.dce-gfc-dumbbell to examples folder make sure u have added its location in wscript<br>
-          B.gfc-dumbbell_parse_cwnd_v2.py to utils folder<br>
-          c.copy linux-plotscripts-gfcdumbell and ns3-plotscriptsgfcdumbbell to ns3-dce directory remove previous contained               plotscript of dummbell<br>
-          D.for linux stack ./waf "--run dce-gfc-dumbbell --stack = linux"<br>
-          E.for ns3 stack ./waf "--run dce-gfc-dumbbell --stack = ns3"<br>
-          F.after running above commands wait till the build compeletes when u run stack = linux u get files form file-0 to file-11 a folder will be created in ns3-dce directory saying results every time u run above D or E command u get a direcorty created in results/gfc/dumbbell/dd-tt-mm  new folders will be saved according time and date when they are executed <br>
-          G.when u run stack = linux go to utils direcorty and open terminal there and run gfc_dumbbell_parse_cwnd_v2.py a folder will be created in results/gfc-dumbell naming cwnd u can see the graphs of linux-cwnd u can plot then using linux-plotscript-gfcdumbbelll similarly u can plot queue size <br>
-          F.similar when u run stack = ns3 a results folder will be created and which has all the data stored inside it open the recently created folder and go to cwnd folder u can see that ns3-cwnd plotme will be there u can get the garphs using ns3-plotscript-gfc-dumbbell similarly queue size of ns3<br>
+step-1: Unzip the gfc-dumbbell file. <br><br>
+
+step-2: Copy the files as mentioned below: <br><br>
+          A.The dce-gfc-dumbbell to the dce/dce-linux-dev/source/ns-3-dce/example folder and make sure you have added its location in the wscript file present in the dce/dce-linux-dev/source/ns-3-dce directory. <br><br>
+          B.gfc-dumbbell_parse_cwnd_v2.py to the utils folder<br><br>
+          C.Copy linux-plotscripts-gfcdumbell and ns3-plotscriptsgfcdumbbell to the ns3-dce directory. <br><br>
+          D.To run the simulation on linux stack, type ./waf "--run dce-gfc-dumbbell --stack = linux" in the terminal after                               changing to the dce/dce-linux-dev/source/ns-3-dce directory. <br><br>
+          E.To run the simulation on linux stack, type ./waf "--run dce-gfc-dumbbell --stack = ns3"<br><br>
+          F.After running above commands, wait for the build to compelete. Folders named file-0, file-1,.......file-11 will be created in the ns3-dce directory. Also, the results of the simulations will be created in ../ns3-dce/results/gfc/dumbbell/dd-mm-yy hh-mm-ss folders with the folder names being the timestamps of the time of start of simulation <br><br>
+          G.When you run stack = linux go to ns3-dce/utils direcorty and open the terminal there and run gfc_dumbbell_parse_cwnd_v2.py. A folder will be created in results/gfc-dumbell named Cwnd_data. You will be able to see the graphs of linux-cwnd. You can plot the graphs using the plotme files generated. <br><br>
+          H.Similarly, when you run stack = ns3, a folder with the timestamp of the time of simulation will be created which has all the plotme files in it. <br>
           <br>
-Comparison of graphs between linux and ns3 stacks basing on the queue size and cwnd <br>
-A.create the a folder nameing comparison in ns3-dce directory <br>
-B.copy all the plotme of linux and ns3 of cwnd and queue to that comparision folder which was created <br>
-C.copy the comparison gnuplotscriptComparison for ploting queue graph<br>
-D.copy the comaparison gnuplotscriptcomparison_queue to get the combied graph of the both linux and ns3  <br>
+          
+## Comparison of graphs between linux and ns3 stacks based on the queue size and cwnd
+A.Create a folder named comparison in ns3-dce directory or anywhere else you are comfortable with. <br><br>
+B.Copy all the plotmes obtained from the simulation of the gfc-dumbbell on linux and ns3 to that folder. <br><br>
+C.Run the comparison gnuplotscriptComparison for ploting queue graph. <br><br>
+D.Run the comaparison gnuplotscriptcomparison_queue to get the combied graph of the both linux and ns3. <br><br>
